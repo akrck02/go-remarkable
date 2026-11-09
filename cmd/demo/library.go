@@ -32,9 +32,9 @@ type library struct {
 // newLibrary fills the library with made-up notes, wrapped for the reading column.
 func newLibrary() *library {
 	return &library{notes: []note{
-		{"Lighthouses", wrapText(paragraphs(40), charactersPerLine)},
-		{"Tides", wrapText(paragraphs(14), charactersPerLine)},
-		{"Knots", wrapText(paragraphs(2), charactersPerLine)},
+		{"Lighthouses", paper.WrapText(paragraphs(40), charactersPerLine)},
+		{"Tides", paper.WrapText(paragraphs(14), charactersPerLine)},
+		{"Knots", paper.WrapText(paragraphs(2), charactersPerLine)},
 	}}
 }
 
@@ -46,26 +46,6 @@ func paragraphs(count int) string {
 			"the pen touches it, because an e-ink panel keeps its picture for free and pays for every change. ", number)
 	}
 	return text.String()
-}
-
-// wrapText breaks text into lines of at most width characters, at the spaces.
-func wrapText(text string, width int) []string {
-	var lines []string
-	line := ""
-	for _, word := range strings.Fields(text) {
-		if line != "" && len(line)+1+len(word) > width {
-			lines = append(lines, line)
-			line = ""
-		}
-		if line != "" {
-			line += " "
-		}
-		line += word
-	}
-	if line != "" {
-		lines = append(lines, line)
-	}
-	return lines
 }
 
 // pageCount is how many pages a note takes, at least one.

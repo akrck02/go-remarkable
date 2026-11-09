@@ -51,7 +51,7 @@ func (page *buttonsPage) draw(context *ui.Context) {
 		if context.LongPressed() {
 			page.longPresses++
 		}
-		context.Toggle(switchName, &page.switched)
+		paper.Switch(context, switchName, &page.switched)
 		context.Label(fmt.Sprintf("Taps: %d", page.taps))
 		context.Label(fmt.Sprintf("Double taps: %d", page.doubleTaps))
 		context.Label(fmt.Sprintf("Long presses: %d", page.longPresses))

@@ -94,24 +94,80 @@ func (target *Canvas) Clear(colour draw2d.Color) {
 	}
 }
 
-// Paint blends one Rectangle of the painter's atlas onto the canvas: the atlas gives the coverage
-// and the quad the colour. It is what a GPU's fragment shader does for the other backends. Pictures
-// and frosted backdrops are left out, as paper interfaces have neither.
-func (target *Canvas) Paint(quad overlay.Quad, atlas *image.Alpha) {
-	if quad.Pictured || quad.Backdrop {
+// Paint blends one Rectangle of the painter's atlas onto the canvas: the atlas gives the coverage,
+// and the colour comes from the quad or, for a picture, from pictures tinted by the quad. It is
+// what a GPU's fragment shader does for the other backends. Frosted backdrops are left out, as
+// paper interfaces have none, and every picture is read smoothly, whatever its Sharp says.
+func (target *Canvas) Paint(quad overlay.Quad, atlas *image.Alpha, pictures *image.NRGBA) {
+	if quad.Backdrop || (quad.Pictured && pictures == nil) {
 		return
 	}
 	area := target.covered(quad)
-	horizontalRatio := (quad.Atlas[2] - quad.Atlas[0]) / (quad.Screen[2] - quad.Screen[0])
-	verticalRatio := (quad.Atlas[3] - quad.Atlas[1]) / (quad.Screen[3] - quad.Screen[1])
+	inAtlas := mappingOf(quad.Screen, quad.Atlas)
+	inPictures := mappingOf(quad.Screen, quad.Picture)
 	for y := area.Top; y < area.Bottom; y++ {
-		atlasY := int(quad.Atlas[1] + (float32(y)+halfAPixel-quad.Screen[1])*verticalRatio)
 		for x := area.Left; x < area.Right; x++ {
-			atlasX := int(quad.Atlas[0] + (float32(x)+halfAPixel-quad.Screen[0])*horizontalRatio)
-			coverage := float32(atlas.AlphaAt(atlasX, atlasY).A) / MaximumChannel
-			target.blend(x, y, quad.Color, coverage*quad.Color[3])
+			atlasX, atlasY := inAtlas.at(x, y)
+			coverage := float32(atlas.AlphaAt(int(atlasX), int(atlasY)).A) / MaximumChannel
+			colour := quad.Color
+			if quad.Pictured {
+				pictureX, pictureY := inPictures.at(x, y)
+				colour = smoothColour(pictures, pictureX, pictureY, quad.Color)
+			}
+			target.blend(x, y, colour, coverage*colour[3])
 		}
 	}
+}
+
+// mapping turns a pixel of the canvas into a point of an image a quad reads from.
+type mapping struct {
+	originX, originY float32
+	ratioX, ratioY   float32
+	screenX, screenY float32
+}
+
+// mappingOf is the mapping that stretches the image's span over the quad's place on the screen.
+func mappingOf(screen, span [4]float32) mapping {
+	return mapping{
+		originX: span[0], originY: span[1],
+		ratioX: (span[2] - span[0]) / (screen[2] - screen[0]), ratioY: (span[3] - span[1]) / (screen[3] - screen[1]),
+		screenX: screen[0], screenY: screen[1],
+	}
+}
+
+// at is where the centre of a canvas pixel falls in the image.
+func (place mapping) at(x, y int) (imageX, imageY float32) {
+	return place.originX + (float32(x)+halfAPixel-place.screenX)*place.ratioX,
+		place.originY + (float32(y)+halfAPixel-place.screenY)*place.ratioY
+}
+
+// smoothColour reads a picture at a point between its pixels, mixing the four nearest so a picture
+// shown at another size does not break into steps, and tints it. Channels go from 0 to 1.
+func smoothColour(picture *image.NRGBA, x, y float32, tint [4]float32) [4]float32 {
+	left, top := float32(math.Floor(float64(x-halfAPixel))), float32(math.Floor(float64(y-halfAPixel)))
+	shareAcross, shareDown := x-halfAPixel-left, y-halfAPixel-top
+	topLeft := pictureOffset(picture, int(left), int(top))
+	topRight := pictureOffset(picture, int(left)+1, int(top))
+	bottomLeft := pictureOffset(picture, int(left), int(top)+1)
+	bottomRight := pictureOffset(picture, int(left)+1, int(top)+1)
+	var colour [4]float32
+	for channel := range colour {
+		upper := mixed(picture.Pix[topLeft+channel], picture.Pix[topRight+channel], shareAcross)
+		lower := mixed(picture.Pix[bottomLeft+channel], picture.Pix[bottomRight+channel], shareAcross)
+		colour[channel] = (upper + (lower-upper)*shareDown) / MaximumChannel * tint[channel]
+	}
+	return colour
+}
+
+// pictureOffset is where a pixel's channels start, for the nearest pixel that exists.
+func pictureOffset(picture *image.NRGBA, x, y int) int {
+	limits := picture.Rect
+	return picture.PixOffset(min(max(x, limits.Min.X), limits.Max.X-1), min(max(y, limits.Min.Y), limits.Max.Y-1))
+}
+
+// mixed is a share of the way from one channel value to another.
+func mixed(from, to byte, share float32) float32 {
+	return float32(from) + (float32(to)-float32(from))*share
 }
 
 // covered is the part of the canvas a quad touches.

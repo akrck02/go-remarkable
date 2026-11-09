@@ -15,6 +15,18 @@ Programs built with `tools/build.sh` link the following software. Its licenses a
 
 `qtfb` is an independent implementation of the protocol of [AppLoad](https://github.com/asivery/rm-appload) (GPL-3.0): it contains none of AppLoad's code, and AppLoad is not distributed here. You install AppLoad yourself, under its own license.
 
+## Pictures
+
+The covers in `cmd/library/covers/` are cropped from prints in the public domain, from The Metropolitan Museum of Art's [Open Access](https://www.metmuseum.org/about-the-met/policies-and-documents/open-access) collection (CC0).
+
+| File | Work | Artist |
+|---|---|---|
+| `lighthouse.jpg` | [Lighthouse](https://www.metmuseum.org/art/collection/search/382738), 1880 | Henry Farrer |
+| `whirlpool.jpg` | [Naruto Whirlpool, Awa Province](https://www.metmuseum.org/art/collection/search/53783), ca. 1853 | Utagawa Hiroshige |
+| `knot.jpg` | [The Sixth Knot](https://www.metmuseum.org/art/collection/search/388790), before 1521 | Albrecht Dürer |
+
+The handwriting in `docs/images/notebook.png` and `docs/images/hero.png` follows the Hershey Fonts. The Hershey Fonts were originally created by Dr. A. V. Hershey while working at the U. S. National Bureau of Standards. The format of the font data was originally created by James Hurt, Cognition, Inc.
+
 ## The Go standard library
 
 ```

@@ -29,7 +29,7 @@ func TestAQuadPaintsItsAtlasCoverageInItsColour(test *testing.T) {
 	atlas := image.NewAlpha(image.Rect(0, 0, 2, 1))
 	atlas.Pix[0], atlas.Pix[1] = 255, 0
 	frame := New(2, 1)
-	frame.Paint(overlay.Quad{Screen: [4]float32{0, 0, 2, 1}, Atlas: [4]float32{0, 0, 2, 1}, Color: [4]float32{1, 0, 0, 1}}, atlas)
+	frame.Paint(overlay.Quad{Screen: [4]float32{0, 0, 2, 1}, Atlas: [4]float32{0, 0, 2, 1}, Color: [4]float32{1, 0, 0, 1}}, atlas, nil)
 	if frame.Pixels[0] != 255 {
 		test.Errorf("covered pixel has red %d", frame.Pixels[0])
 	}
@@ -41,7 +41,28 @@ func TestAQuadPaintsItsAtlasCoverageInItsColour(test *testing.T) {
 func TestAQuadOutsideTheCanvasPaintsNothingAndDoesNotCrash(test *testing.T) {
 	atlas := image.NewAlpha(image.Rect(0, 0, 4, 4))
 	frame := New(2, 2)
-	frame.Paint(overlay.Quad{Screen: [4]float32{-2, -2, 9, 9}, Atlas: [4]float32{0, 0, 4, 4}, Color: [4]float32{1, 1, 1, 1}}, atlas)
+	frame.Paint(overlay.Quad{Screen: [4]float32{-2, -2, 9, 9}, Atlas: [4]float32{0, 0, 4, 4}, Color: [4]float32{1, 1, 1, 1}}, atlas, nil)
+}
+
+func TestAPictureShowsItsOwnColoursInsideItsCoverage(test *testing.T) {
+	atlas := image.NewAlpha(image.Rect(0, 0, 3, 1))
+	atlas.Pix[0], atlas.Pix[1], atlas.Pix[2] = 255, 255, 0
+	pictures := image.NewNRGBA(image.Rect(0, 0, 3, 1))
+	copy(pictures.Pix, []byte{255, 0, 0, 255, 0, 0, 255, 255, 0, 255, 0, 255})
+	frame := New(3, 1)
+	frame.Paint(overlay.Quad{
+		Screen: [4]float32{0, 0, 3, 1}, Atlas: [4]float32{0, 0, 3, 1}, Picture: [4]float32{0, 0, 3, 1},
+		Color: [4]float32{1, 1, 1, 1}, Pictured: true,
+	}, atlas, pictures)
+	if frame.Pixels[0] != 255 {
+		test.Errorf("the first pixel has red %d", frame.Pixels[0])
+	}
+	if frame.Pixels[1*BytesPerRGBPixel+2] != 255 {
+		test.Errorf("the second pixel has blue %d", frame.Pixels[1*BytesPerRGBPixel+2])
+	}
+	if frame.Pixels[2*BytesPerRGBPixel+1] != 0 {
+		test.Errorf("the uncovered pixel has green %d", frame.Pixels[2*BytesPerRGBPixel+1])
+	}
 }
 
 func TestCopyingOneAreaLeavesTheRestOfThePanelAlone(test *testing.T) {

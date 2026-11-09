@@ -8,8 +8,8 @@ Go programs on the **reMarkable Paper Pro**, opened from [AppLoad](https://githu
 The interface is [Go UI](https://github.com/akrck02/go-ui)'s and its shapes are
 [Go Renderer](https://github.com/akrck02/go-renderer)'s; this repository holds the rest of the
 platform: the program loop (`app`), the connection to the screen (`qtfb`), ink that follows the pen
-(`ink`), the tablet's pen and fingers (`pen`, `pointer`), a look made for e-ink (`paper`), and tools
-that build and install a program.
+(`ink`), the tablet's pen and fingers (`pen`, `pointer`), a calm look made for e-ink (`paper`), and
+tools that build and install a program.
 
 [![Test](https://github.com/akrck02/go-remarkable/actions/workflows/test.yaml/badge.svg)](https://github.com/akrck02/go-remarkable/actions/workflows/test.yaml)
 [![Licence](https://img.shields.io/github/license/akrck02/go-remarkable)](LICENSE)
@@ -19,8 +19,10 @@ that build and install a program.
 > supported, and a change of the tablet's software can break it.
 
 <p align="center">
-  <img alt="The demo's Reading screen: a list of notes on the left and a page of text on the right" src="docs/images/demo-reading.png" width="320">
+  <img alt="Three tablets showing the Library example: a page of a book, a shelf of books with one to continue, and a notebook with a sketch of a lighthouse" src="docs/images/hero.png" width="860">
 </p>
+
+<p align="center"><sub>Real frames of <code>cmd/library</code>, composed by this code and placed in a drawn tablet.</sub></p>
 
 ```bash
 tools/build.sh ./cmd/hello     # out/hello

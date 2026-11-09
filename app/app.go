@@ -451,7 +451,7 @@ func (application *Application) paint(drawing *draw2d.List) int {
 	})
 	application.frame.Clear(application.context.Theme.Background)
 	for _, quad := range quads {
-		application.frame.Paint(quad, application.painter.Atlas().Image)
+		application.frame.Paint(quad, application.painter.Atlas().Image, application.painter.Pictures().Image)
 	}
 	if application.program.InkOpen() {
 		application.program.Ink.PaintAll()

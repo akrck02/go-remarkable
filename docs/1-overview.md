@@ -4,7 +4,7 @@
 
 **Go for reMarkable runs Go programs on the reMarkable Paper Pro**: an interface on paper that stays still until you touch it, ink that follows the pen, and a screen that turns with the tablet.
 
-<p align="center"><img alt="The demo's Gestures screen: a card to swipe, a list of rows, and a measure of pinch and twist" src="images/demo-gestures.png" width="320"></p>
+<p align="center"><img alt="The Library example: a book to continue reading and a shelf of three covers" src="images/library.png" width="360"></p>
 
 It is the tablet's side of the family: the program's loop, the pen and the fingers, and the tools that put a program on the tablet. Go UI builds the interface and Go Renderer turns it into shapes. An e-ink panel has no graphics chip to speak of, so here the shapes are blended by the processor, and only the pixels that changed reach the panel.
 

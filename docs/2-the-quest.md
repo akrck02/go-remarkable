@@ -156,7 +156,7 @@ func newProgram(device app.Device) app.Program {
 tools/build.sh ./cmd/notebook && tools/install.sh out/notebook
 ```
 
-<p align="center"><img alt="A sheet of paper with four lines drawn on it, under a button that says Start again" src="images/notebook.png" width="280"></p>
+<p align="center"><img alt="A sheet of paper with handwriting and a sketch of a lighthouse, under a button that says Start again" src="images/notebook.png" width="280"></p>
 
 **✅ Checkpoint:** the line follows the tip. Press harder and it gets wider. Turn the pen over, and a
 band shows what the eraser is about to remove; lift it and that part is gone.
@@ -214,5 +214,7 @@ tools/build.sh ./cmd/demo && tools/install.sh out/demo
 ## 🏁 Your own program
 
 Copy `cmd/counter` to `cmd/<your-program>`, change `application` in the manifest to that same folder
-name, and draw something of your own. Before you do anything long, read
+name, and draw something of your own. For what an interface for paper can look like, read
+`cmd/library`: a shelf, a page that stays still until it is turned, and a notebook, with real prints
+for covers and nothing that moves. Before you do anything long, read
 [before writing a larger program](3-what-is-where.md#before-writing-a-larger-program).

@@ -13,10 +13,11 @@ checked on a real tablet.
 | `ink` | `ink.Surface`, paper to write on: lines that follow the pen with no interface in between, an eraser, and a clean refresh when the pen rests. |
 | `pen` | The pen's pressure, tilt and eraser, read from its own device, which is never taken from the system. If it cannot be read, ink still works with plain lines. |
 | `pointer` | Turns the tablet's pen and fingers into the single pointer an interface expects, and copes with a resting palm and with presses whose release never came. |
-| `paper` | A theme and a button for e-ink: high contrast, no shadows, and no extra refresh for holding a button. |
+| `paper` | A calm look for e-ink: a theme of soft ink and thin lines on pure white, and buttons, a switch, cards and a progress bar that cost no extra refresh when touched. |
 | `apptest` | Runs a program with no tablet: a stand-in for AppLoad that remembers what it was asked, and events delivered by hand. |
 | `failure` | Errors with a stable name, such as `qtfb.server-not-found`, to check with `errors.Is`. |
 | `cmd/hello`, `cmd/counter`, `cmd/notebook` | The small programs of [the quest](2-the-quest.md). |
+| `cmd/library` | The example of a finished interface: a shelf of books, a reader and a notebook. |
 | `cmd/demo` | The test bench: Reading, Buttons, Ink, Gestures, Screen and Monitor. Each screen logs what it cost. |
 | `tools/build.sh` | Builds `./cmd/<program>` for the tablet into `out/<program>`, with its manifest. |
 | `tools/install.sh` | Copies `out/<program>` into AppLoad's folder over SSH. It writes only inside the program's own folder. `REMARKABLE_HOST` changes where it goes. |
@@ -61,7 +62,7 @@ hand, before it was divided into these packages:
 | AppLoad's own gestures | The swipe from the top and five fingers leave the program working. |
 | At rest | All six screens stayed at 0 % processor with no frames, for 30 seconds each. |
 
-**Not run on a tablet:** `cmd/hello`, `cmd/counter`, `cmd/notebook`, `tools/build.sh` and
+**Not run on a tablet:** `cmd/hello`, `cmd/counter`, `cmd/notebook`, `cmd/library`, `tools/build.sh` and
 `tools/install.sh` as they stand here, nor the demo since it became packages. The tests run the same
 code with a stand-in for AppLoad. The demo's two-finger list and its swipe to the end, and the
 eraser's band at its final width, were installed but not reported on.
@@ -86,7 +87,7 @@ eraser's band at its final width, were installed but not reported on.
 ## Not yet
 
 - Only the Paper Pro. The panel's size and pixel format are written into `app` and `qtfb`.
-- `canvas` paints no pictures or frosted backdrops, so a Go UI image does not show.
+- `canvas` paints no frosted backdrops, so Go UI's glass does not show.
 - A program cannot save what is written yet: strokes live in memory.
 - No text entry: nothing brings up a keyboard.
 - No desktop runner in this repository: besides the tablet, there is only `apptest`.
