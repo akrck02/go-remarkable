@@ -1,0 +1,6 @@
+{
+  "name": "Counter",
+  "application": "counter",
+  "qtfb": true,
+  "supportsRotation": true
+}

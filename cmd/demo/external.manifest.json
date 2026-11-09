@@ -1,0 +1,6 @@
+{
+  "name": "Tablet demo",
+  "application": "demo",
+  "qtfb": true,
+  "supportsRotation": true
+}

@@ -1,0 +1,6 @@
+{
+  "name": "Notebook",
+  "application": "notebook",
+  "qtfb": true,
+  "supportsRotation": true
+}
