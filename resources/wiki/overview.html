@@ -1,0 +1,214 @@
+<p align="center"><img alt="" src="./images/logo.svg" width="120"></p>
+
+<h1 id="welcome-to-go-for-remarkable">Welcome to Go for reMarkable 👋</h1>
+
+<p><strong>Go for reMarkable runs Go programs on the reMarkable Paper Pro</strong>: an interface on paper that stays still until you touch it, ink that follows the pen, and a screen that turns with the tablet.</p>
+
+<p align="center"><img alt="The Library example: a book to continue reading and a shelf of three covers" src="./images/library.png" width="360"></p>
+
+<p>It is the tablet&rsquo;s side of the family: the program&rsquo;s loop, the pen and the fingers, and the tools that put a program on the tablet. Go UI builds the interface and Go Renderer turns it into shapes. An e-ink panel has no graphics chip to speak of, so here the shapes are blended by the processor, and only the pixels that changed reach the panel.</p>
+
+<blockquote>
+<p>🚧 <strong>An experiment.</strong> <a href="./what-is-where">What was checked</a> says exactly what ran on a real tablet.</p>
+</blockquote>
+
+<h2 id="is-it-for-me">Is it for me?</h2>
+
+<ul>
+<li>✅ You have a <strong>reMarkable Paper Pro</strong> in developer mode and want to put <strong>your own program</strong> on it.</li>
+<li>✅ You want to see how to write for <strong>e-ink</strong>, where every change of the picture has a price.</li>
+<li>❌ You have a reMarkable 2 or a Paper Pro Move: their screens are different, and nothing here was made for them.</li>
+<li>❌ You want something that survives updates by itself: this depends on xovi and AppLoad, which follow each version of the tablet&rsquo;s software.</li>
+</ul>
+
+<h2 id="where-to-start">Where to start</h2>
+
+<p>Pick the line that sounds like you.</p>
+
+<table>
+<thead>
+<tr>
+<th>If you…</th>
+<th>Read</th>
+<th>Time</th>
+</tr>
+</thead>
+
+<tbody>
+<tr>
+<td>are <strong>new</strong> and want a program on the tablet</td>
+<td>📜 <a href="./the-quest">The quest</a>: from words on paper to your own program, in 5 levels</td>
+<td>45 min</td>
+</tr>
+
+<tr>
+<td>want to know <strong>what each package does</strong> and <strong>what you need</strong></td>
+<td><a href="./what-is-where">What is where</a></td>
+<td>10 min</td>
+</tr>
+
+<tr>
+<td>plan a <strong>larger program</strong></td>
+<td><a href="./what-is-where">Before writing a larger program</a></td>
+<td>5 min</td>
+</tr>
+</tbody>
+</table>
+
+<h2 id="all-the-pages-in-reading-order">All the pages, in reading order</h2>
+
+<p>The menu on the left (or the files in <code>docs/</code>) follows this order.</p>
+
+<p><strong>Start</strong></p>
+
+<ul>
+<li><a href="./overview">Overview</a>: this page</li>
+<li><a href="./the-quest">The quest</a>: five levels, from words on paper to turning the tablet</li>
+<li><a href="./what-is-where">What is where</a>: the packages, the tools, what you need, what was checked, and what is not done yet</li>
+</ul>
+
+<h2 id="not-done-yet">🚧 Not done yet</h2>
+
+<p>See <a href="./what-is-where">what is where</a>.</p>
+
+<h2 id="words-you-will-meet">Words you will meet</h2>
+
+<table>
+<thead>
+<tr>
+<th>Word</th>
+<th>What it means</th>
+</tr>
+</thead>
+
+<tbody>
+<tr>
+<td>Go</td>
+<td>A programming language. To try these projects you install it once, from go.dev.</td>
+</tr>
+
+<tr>
+<td>Terminal</td>
+<td>The window where you type commands: <em>Terminal</em> on macOS and Linux, <em>PowerShell</em> on Windows.</td>
+</tr>
+
+<tr>
+<td>Developer mode</td>
+<td>A setting of the tablet that lets you open a terminal on it over USB, with SSH.</td>
+</tr>
+
+<tr>
+<td>xovi</td>
+<td>A tool that adds extensions to the tablet&rsquo;s own program. It stays off until you start it, and a restart turns it off again.</td>
+</tr>
+
+<tr>
+<td>AppLoad</td>
+<td>The xovi extension that lists and opens programs like these.</td>
+</tr>
+
+<tr>
+<td>E-ink</td>
+<td>A screen of tiny capsules that keeps its picture with no power, and pays for every change.</td>
+</tr>
+
+<tr>
+<td>Refresh</td>
+<td>The moment the panel changes its capsules. Fast ones leave a ghost of the old picture; clean ones take longer.</td>
+</tr>
+
+<tr>
+<td>Quest</td>
+<td>The tutorial of these docs: short levels, each ending with something that works and an achievement.</td>
+</tr>
+</tbody>
+</table>
+
+<h2 id="the-family">The family</h2>
+
+<p>Go for reMarkable is one of a family of small projects that work together:</p>
+
+<table>
+<thead>
+<tr>
+<th>Project</th>
+<th>What it does</th>
+</tr>
+</thead>
+
+<tbody>
+<tr>
+<td><a href="https://github.com/akrck02/go-renderer" target="_blank">Go Renderer</a></td>
+<td>draws 3D scenes and flat interfaces</td>
+</tr>
+
+<tr>
+<td><a href="https://github.com/akrck02/go-ui" target="_blank">Go UI</a></td>
+<td>buttons, panels and whole applications</td>
+</tr>
+
+<tr>
+<td><a href="https://github.com/akrck02/go-ui-android" target="_blank">Go UI for Android</a></td>
+<td>Android apps that look like Android&rsquo;s own</td>
+</tr>
+
+<tr>
+<td><a href="https://github.com/akrck02/go-sound" target="_blank">Go Sound</a></td>
+<td>sound and music</td>
+</tr>
+
+<tr>
+<td><a href="https://github.com/akrck02/go-scene-builder" target="_blank">Go Scene Builder</a></td>
+<td>3D scenes from a flat map</td>
+</tr>
+
+<tr>
+<td><a href="https://github.com/akrck02/go-simulator" target="_blank">Go Simulator</a></td>
+<td>simulations that change a scene</td>
+</tr>
+
+<tr>
+<td><a href="https://github.com/akrck02/go-simulator-terrain" target="_blank">Go Terrain Simulator</a></td>
+<td>ground shaped by rivers</td>
+</tr>
+
+<tr>
+<td><a href="https://github.com/akrck02/go-simulator-climate" target="_blank">Go Climate Simulator</a></td>
+<td>weather and biomes</td>
+</tr>
+
+<tr>
+<td><a href="https://github.com/akrck02/go-simulator-flora" target="_blank">Go Flora Simulator</a></td>
+<td>forests that grow</td>
+</tr>
+
+<tr>
+<td><a href="https://github.com/akrck02/go-simulator-urban" target="_blank">Go Urban Simulator</a></td>
+<td>towns that grow</td>
+</tr>
+
+<tr>
+<td><a href="https://github.com/akrck02/go-simulator-motion" target="_blank">Go Motion Simulator</a></td>
+<td>a scene that moves</td>
+</tr>
+
+<tr>
+<td><a href="https://github.com/akrck02/go-3ds" target="_blank">Go for 3DS</a></td>
+<td>Go on the Nintendo 3DS</td>
+</tr>
+
+<tr>
+<td><a href="https://github.com/akrck02/go-meta-quest" target="_blank">Go for Meta Quest</a></td>
+<td>Go on the Meta Quest 3</td>
+</tr>
+
+<tr>
+<td><strong>Go for reMarkable</strong> (this one)</td>
+<td>Go on the reMarkable Paper Pro</td>
+</tr>
+</tbody>
+</table>
+
+<blockquote>
+<p>⚠️ All of them are <strong>educational experiments</strong>, written with an AI assistant and pending review by their author: good for learning and playing, not for production.</p>
+</blockquote>

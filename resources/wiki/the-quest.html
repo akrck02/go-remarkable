@@ -1,0 +1,223 @@
+<h1 id="the-paper-quest">The paper quest</h1>
+
+<p>Put a Go program on a reMarkable Paper Pro, one level at a time. Each level teaches one piece of Go
+for reMarkable and ends with a program you open on the tablet.</p>
+
+<p>We start by making the tablet ready, then put words on paper, count presses of a button without
+wasting a refresh, write with the pen, and finally turn the tablet and watch the interface follow.</p>
+
+<p>Every level has the same shape: <strong>the idea</strong>, <strong>the code</strong>, and a <strong>checkpoint</strong> to know it works.</p>
+
+<hr>
+
+<h2 id="before-you-start">Before you start</h2>
+
+<p>You need:</p>
+
+<table>
+<thead>
+<tr>
+<th></th>
+<th>Why</th>
+<th>Where</th>
+</tr>
+</thead>
+
+<tbody>
+<tr>
+<td><strong>Go</strong> 1.26 or later</td>
+<td>The compiler; it builds for the tablet by itself</td>
+<td><a href="https://go.dev/dl/" target="_blank">go.dev</a></td>
+</tr>
+
+<tr>
+<td><strong>A reMarkable Paper Pro</strong> in developer mode, and a USB-C cable</td>
+<td>Where it runs</td>
+<td>The tablet&rsquo;s settings</td>
+</tr>
+
+<tr>
+<td><strong>xovi and AppLoad</strong></td>
+<td>They list and open programs</td>
+<td><a href="https://github.com/asivery/xovi" target="_blank">xovi</a>, <a href="https://github.com/asivery/rm-appload" target="_blank">AppLoad</a></td>
+</tr>
+</tbody>
+</table>
+<p>Clone the repository; Go fetches Go UI and Go Renderer by itself.</p>
+<pre><code class="language-bash">git clone https://github.com/akrck02/go-remarkable
+<span class="nb">cd</span> go-remarkable
+</code></pre>
+
+<blockquote>
+<p>⚠️ <strong>This is your tablet, at your own risk.</strong> Follow xovi&rsquo;s and AppLoad&rsquo;s own instructions, for
+exactly your version of the tablet&rsquo;s software. Nothing here writes to the system partition, so
+leaving is a restart away: xovi stops, and the tablet is as it was.</p>
+</blockquote>
+
+<p>Each time you restart the tablet, xovi is off. Over SSH (<code>ssh root@10.11.99.1</code>), start it like this:</p>
+<pre><code class="language-bash">systemctl mask --runtime rm-emergency.service
+systemctl show rm-emergency.service -p LoadState   <span class="c1"># must say LoadState=masked; if not, stop here</span>
+systemctl reset-failed xochitl
+/home/root/xovi/start
+</code></pre>
+
+<p>The first line matters. If the tablet&rsquo;s own program fails while xovi is starting, the system&rsquo;s
+reaction is an emergency restart. <code>--runtime</code> turns that reaction off only until the next restart.</p>
+
+<p><strong>✅ Checkpoint:</strong> after half a minute the tablet shows its usual screen, and AppLoad is in the side menu.</p>
+
+<hr>
+
+<h2 id="level-1-words-on-paper">Level 1 · Words on paper</h2>
+
+<p><strong>The idea.</strong> AppLoad is a shelf. It looks in a folder for programs, and each one comes with a small
+label, <code>external.manifest.json</code>, that gives its name. When you open one, AppLoad hands it a piece of
+screen, and the program paints it.</p>
+
+<p><strong>The code.</strong> A program only has to say how to draw itself. This is the heart of <code>cmd/hello/main.go</code>:</p>
+<pre><code class="language-go"><span class="kd">func</span> <span class="nf">newProgram</span><span class="p">(</span><span class="nx">app</span><span class="p">.</span><span class="nx">Device</span><span class="p">)</span> <span class="nx">app</span><span class="p">.</span><span class="nx">Program</span> <span class="p">{</span>
+	<span class="k">return</span> <span class="nx">app</span><span class="p">.</span><span class="nx">Program</span><span class="p">{</span><span class="nx">Draw</span><span class="p">:</span> <span class="nx">draw</span><span class="p">}</span>
+<span class="p">}</span>
+
+<span class="kd">func</span> <span class="nf">draw</span><span class="p">(</span><span class="nx">context</span> <span class="o">*</span><span class="nx">ui</span><span class="p">.</span><span class="nx">Context</span><span class="p">)</span> <span class="p">{</span>
+	<span class="nx">context</span><span class="p">.</span><span class="nf">Box</span><span class="p">(</span><span class="nx">ui</span><span class="p">.</span><span class="nx">Layout</span><span class="p">{</span><span class="nx">Width</span><span class="p">:</span> <span class="nx">ui</span><span class="p">.</span><span class="nf">Grow</span><span class="p">(),</span> <span class="nx">Height</span><span class="p">:</span> <span class="nx">ui</span><span class="p">.</span><span class="nf">Grow</span><span class="p">(),</span> <span class="nx">Padding</span><span class="p">:</span> <span class="nx">ui</span><span class="p">.</span><span class="nf">Pad</span><span class="p">(</span><span class="nx">marginInLayoutPixels</span><span class="p">)},</span> <span class="kd">func</span><span class="p">()</span> <span class="p">{</span>
+		<span class="nx">context</span><span class="p">.</span><span class="nf">Heading</span><span class="p">(</span><span class="s">&#34;Hello, paper&#34;</span><span class="p">)</span>
+	<span class="p">})</span>
+<span class="p">}</span>
+</code></pre>
+
+<p><code>main</code> only calls <code>app.Run(newProgram)</code>. Build it and send it over:</p>
+<pre><code class="language-bash">tools/build.sh ./cmd/hello     <span class="c1"># prints out/hello</span>
+tools/install.sh out/hello     <span class="c1"># prints installed hello on root@10.11.99.1</span>
+</code></pre>
+
+<p>Reload AppLoad&rsquo;s list and open <em>Hello, paper</em>.</p>
+
+<p align="center"><img alt="A white page with the heading Hello, paper" src="./images/hello.png" width="280"></p>
+
+<p><strong>✅ Checkpoint:</strong> the words are on the panel, and they stay there with the program asleep.</p>
+
+<p>🏅 <em>Achievement: first ink, without a pen.</em></p>
+
+<hr>
+
+<h2 id="level-2-a-button-that-counts">Level 2 · A button that counts</h2>
+
+<p><strong>The idea.</strong> A phone repaints sixty times a second and nobody minds. E-ink pays for every change,
+with time and with ghosts of the old picture. So the program sleeps until something happens, and it
+sends only the pixels that changed. Go UI&rsquo;s usual button also darkens while it is held. On paper that
+is a whole extra refresh before anything has happened, so <code>paper.Button</code> keeps one look.</p>
+
+<p><strong>The code</strong>, from <code>cmd/counter/main.go</code>:</p>
+<pre><code class="language-go"><span class="kd">func</span> <span class="p">(</span><span class="nx">shown</span> <span class="o">*</span><span class="nx">counter</span><span class="p">)</span> <span class="nf">draw</span><span class="p">(</span><span class="nx">context</span> <span class="o">*</span><span class="nx">ui</span><span class="p">.</span><span class="nx">Context</span><span class="p">)</span> <span class="p">{</span>
+	<span class="nx">context</span><span class="p">.</span><span class="nf">Box</span><span class="p">(</span><span class="nx">ui</span><span class="p">.</span><span class="nx">Layout</span><span class="p">{</span><span class="nx">Direction</span><span class="p">:</span> <span class="nx">ui</span><span class="p">.</span><span class="nx">Vertical</span><span class="p">,</span> <span class="nx">Width</span><span class="p">:</span> <span class="nx">ui</span><span class="p">.</span><span class="nf">Grow</span><span class="p">(),</span> <span class="nx">Height</span><span class="p">:</span> <span class="nx">ui</span><span class="p">.</span><span class="nf">Grow</span><span class="p">(),</span> <span class="nx">Padding</span><span class="p">:</span> <span class="nx">ui</span><span class="p">.</span><span class="nf">Pad</span><span class="p">(</span><span class="nx">marginInLayoutPixels</span><span class="p">),</span> <span class="nx">Gap</span><span class="p">:</span> <span class="nx">gapInLayoutPixels</span><span class="p">},</span> <span class="kd">func</span><span class="p">()</span> <span class="p">{</span>
+		<span class="nx">context</span><span class="p">.</span><span class="nf">Heading</span><span class="p">(</span><span class="nx">fmt</span><span class="p">.</span><span class="nf">Sprintf</span><span class="p">(</span><span class="s">&#34;Pressed %d times&#34;</span><span class="p">,</span> <span class="nx">shown</span><span class="p">.</span><span class="nx">count</span><span class="p">))</span>
+		<span class="k">if</span> <span class="nx">paper</span><span class="p">.</span><span class="nf">Button</span><span class="p">(</span><span class="nx">context</span><span class="p">,</span> <span class="nx">addButtonName</span><span class="p">)</span> <span class="p">{</span>
+			<span class="nx">shown</span><span class="p">.</span><span class="nx">count</span><span class="o">++</span>
+		<span class="p">}</span>
+	<span class="p">})</span>
+<span class="p">}</span>
+</code></pre>
+<pre><code class="language-bash">tools/build.sh ./cmd/counter <span class="o">&amp;&amp;</span> tools/install.sh out/counter
+</code></pre>
+
+<p align="center"><img alt="A heading that says Pressed 3 times, above a button" src="./images/counter.png" width="280"></p>
+
+<p><strong>✅ Checkpoint:</strong> each press changes the number, once. Nothing flashes while your finger is down.</p>
+
+<p>You can prove it with no tablet at all. <code>apptest</code> replaces AppLoad with a stand-in that remembers what
+it was asked, and <code>cmd/counter/main_test.go</code> checks that a press costs exactly one refresh:</p>
+<pre><code class="language-bash">go <span class="nb">test</span> ./cmd/counter
+</code></pre>
+
+<p>🏅 <em>Achievement: thrifty painter.</em></p>
+
+<hr>
+
+<h2 id="level-3-writing">Level 3 · Writing</h2>
+
+<p><strong>The idea.</strong> Building a whole interface for each point of a pen would be far too slow for
+handwriting. So <code>ink.Surface</code> takes the pen away from the interface and paints straight on the canvas,
+in the fastest refresh mode. When the pen rests for two seconds, the lines get one clean refresh.
+Your palm can rest on the panel meanwhile: while the pen writes, touches are ignored.</p>
+
+<p>AppLoad does not tell a program how hard you press, so <code>pen</code> reads the pen&rsquo;s own device, without
+taking it away from the system.</p>
+
+<p><strong>The code</strong>, from <code>cmd/notebook/main.go</code>. The program makes the paper, shows it, and tells the loop
+that it has one:</p>
+<pre><code class="language-go"><span class="kd">func</span> <span class="p">(</span><span class="nx">shown</span> <span class="o">*</span><span class="nx">notebook</span><span class="p">)</span> <span class="nf">draw</span><span class="p">(</span><span class="nx">context</span> <span class="o">*</span><span class="nx">ui</span><span class="p">.</span><span class="nx">Context</span><span class="p">)</span> <span class="p">{</span>
+	<span class="nx">context</span><span class="p">.</span><span class="nf">Box</span><span class="p">(</span><span class="nx">ui</span><span class="p">.</span><span class="nx">Layout</span><span class="p">{</span><span class="nx">Direction</span><span class="p">:</span> <span class="nx">ui</span><span class="p">.</span><span class="nx">Vertical</span><span class="p">,</span> <span class="nx">Width</span><span class="p">:</span> <span class="nx">ui</span><span class="p">.</span><span class="nf">Grow</span><span class="p">(),</span> <span class="nx">Height</span><span class="p">:</span> <span class="nx">ui</span><span class="p">.</span><span class="nf">Grow</span><span class="p">(),</span> <span class="nx">Padding</span><span class="p">:</span> <span class="nx">ui</span><span class="p">.</span><span class="nf">Pad</span><span class="p">(</span><span class="nx">marginInLayoutPixels</span><span class="p">),</span> <span class="nx">Gap</span><span class="p">:</span> <span class="nx">gapInLayoutPixels</span><span class="p">},</span> <span class="kd">func</span><span class="p">()</span> <span class="p">{</span>
+		<span class="k">if</span> <span class="nx">paper</span><span class="p">.</span><span class="nf">Button</span><span class="p">(</span><span class="nx">context</span><span class="p">,</span> <span class="nx">clearButtonName</span><span class="p">)</span> <span class="p">{</span>
+			<span class="nx">shown</span><span class="p">.</span><span class="nx">page</span><span class="p">.</span><span class="nf">Clear</span><span class="p">()</span>
+		<span class="p">}</span>
+		<span class="nx">shown</span><span class="p">.</span><span class="nx">page</span><span class="p">.</span><span class="nf">DrawPaper</span><span class="p">(</span><span class="nx">context</span><span class="p">)</span>
+	<span class="p">})</span>
+<span class="p">}</span>
+
+<span class="kd">func</span> <span class="nf">newProgram</span><span class="p">(</span><span class="nx">device</span> <span class="nx">app</span><span class="p">.</span><span class="nx">Device</span><span class="p">)</span> <span class="nx">app</span><span class="p">.</span><span class="nx">Program</span> <span class="p">{</span>
+	<span class="nx">shown</span> <span class="o">:=</span> <span class="o">&amp;</span><span class="nx">notebook</span><span class="p">{</span><span class="nx">page</span><span class="p">:</span> <span class="nx">device</span><span class="p">.</span><span class="nf">NewInk</span><span class="p">()}</span>
+	<span class="k">return</span> <span class="nx">app</span><span class="p">.</span><span class="nx">Program</span><span class="p">{</span><span class="nx">Draw</span><span class="p">:</span> <span class="nx">shown</span><span class="p">.</span><span class="nx">draw</span><span class="p">,</span> <span class="nx">Ink</span><span class="p">:</span> <span class="nx">shown</span><span class="p">.</span><span class="nx">page</span><span class="p">}</span>
+<span class="p">}</span>
+</code></pre>
+<pre><code class="language-bash">tools/build.sh ./cmd/notebook <span class="o">&amp;&amp;</span> tools/install.sh out/notebook
+</code></pre>
+
+<p align="center"><img alt="A sheet of paper with handwriting and a sketch of a lighthouse, under a button that says Start again" src="./images/notebook.png" width="280"></p>
+
+<p><strong>✅ Checkpoint:</strong> the line follows the tip. Press harder and it gets wider. Turn the pen over, and a
+band shows what the eraser is about to remove; lift it and that part is gone.</p>
+
+<p>🏅 <em>Achievement: pen pal.</em></p>
+
+<hr>
+
+<h2 id="level-4-turn-the-tablet">Level 4 · Turn the tablet</h2>
+
+<p><strong>The idea.</strong> The tablet already knows which way up it is. AppLoad passes that on, if the program says
+in its label that it can turn:</p>
+<pre><code class="language-json"><span class="p">{</span>
+  <span class="nt">&#34;name&#34;</span><span class="p">:</span> <span class="s2">&#34;Notebook&#34;</span><span class="p">,</span>
+  <span class="nt">&#34;application&#34;</span><span class="p">:</span> <span class="s2">&#34;notebook&#34;</span><span class="p">,</span>
+  <span class="nt">&#34;qtfb&#34;</span><span class="p">:</span> <span class="kc">true</span><span class="p">,</span>
+  <span class="nt">&#34;supportsRotation&#34;</span><span class="p">:</span> <span class="kc">true</span>
+<span class="p">}</span>
+</code></pre>
+
+<p>There is nothing to add to the code: <code>app</code> turns the canvas, the pen and the fingers, and the strokes
+stay where they are on the panel.</p>
+
+<p>One catch is easy to miss. AppLoad opens a program <strong>in a window</strong>, and a window turns only with
+its own button. Only <strong>in full screen</strong> does it follow the tablet.</p>
+
+<p><strong>✅ Checkpoint:</strong> open the notebook, press AppLoad&rsquo;s full-screen button, and turn the tablet each way.
+The button moves to the new top, and taps still land on it.</p>
+
+<p>🏅 <em>Achievement: right way up, whichever that is.</em></p>
+
+<hr>
+
+<h2 id="level-5-everything-at-once">Level 5 · Everything at once</h2>
+
+<p><strong>The idea.</strong> <code>cmd/demo</code> is a test bench with one screen for each thing the tablet can do: reading,
+buttons, ink, gestures, the panel&rsquo;s refresh modes, and a monitor of every event. It is also the example
+to read for the rest of <code>app.Program</code>: <code>RefreshMode</code> picks how each frame reaches the panel, <code>InkOpen</code>
+says when the paper is on screen, and <code>OnEvent</code> sees everything first.</p>
+<pre><code class="language-bash">tools/build.sh ./cmd/demo <span class="o">&amp;&amp;</span> tools/install.sh out/demo
+</code></pre>
+
+<p align="center"><img alt="The demo's Screen screen: buttons for each refresh mode, a patch to repaint, and rows of greys and colours" src="./images/demo-screen.png" width="280"></p>
+
+<p><strong>✅ Checkpoint:</strong> on <em>Screen</em>, press each mode and compare what the patch leaves behind.</p>
+
+<p>🏅 <em>Achievement: knows the panel by heart.</em></p>
+
+<hr>
+
+<h2 id="your-own-program">🏁 Your own program</h2>
+
+<p>Copy <code>cmd/counter</code> to <code>cmd/&lt;your-program&gt;</code>, change <code>application</code> in the manifest to that same folder
+name, and draw something of your own. For what an interface for paper can look like, read
+<code>cmd/library</code>: a shelf, a page that stays still until it is turned, and a notebook, with real prints
+for covers and nothing that moves. Before you do anything long, read
+<a href="./what-is-where">before writing a larger program</a>.</p>

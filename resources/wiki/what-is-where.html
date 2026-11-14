@@ -1,0 +1,201 @@
+<h1 id="what-is-where">What is where</h1>
+
+<p>The packages of Go for reMarkable, the programs and tools it comes with, what you need, and what was
+checked on a real tablet.</p>
+
+<h2 id="what-is-where-1">What is where</h2>
+
+<table>
+<thead>
+<tr>
+<th>Piece</th>
+<th>What it does</th>
+</tr>
+</thead>
+
+<tbody>
+<tr>
+<td><code>app</code></td>
+<td>The program loop: <code>app.Run</code> opens the screen and answers events until AppLoad closes the program. A program is an <code>app.Program</code>, and only <code>Draw</code> is required. Between events it sleeps.</td>
+</tr>
+
+<tr>
+<td><code>qtfb</code></td>
+<td>The connection to AppLoad: pixels in shared memory, a socket for refreshes, input events, the refresh modes and the tablet&rsquo;s rotation.</td>
+</tr>
+
+<tr>
+<td><code>canvas</code></td>
+<td>The frame, composed on the processor. It blends Go Renderer&rsquo;s shapes, turns for each orientation, and copies to the panel only the pixels that changed.</td>
+</tr>
+
+<tr>
+<td><code>ink</code></td>
+<td><code>ink.Surface</code>, paper to write on: lines that follow the pen with no interface in between, an eraser, and a clean refresh when the pen rests.</td>
+</tr>
+
+<tr>
+<td><code>pen</code></td>
+<td>The pen&rsquo;s pressure, tilt and eraser, read from its own device, which is never taken from the system. If it cannot be read, ink still works with plain lines.</td>
+</tr>
+
+<tr>
+<td><code>pointer</code></td>
+<td>Turns the tablet&rsquo;s pen and fingers into the single pointer an interface expects, and copes with a resting palm and with presses whose release never came.</td>
+</tr>
+
+<tr>
+<td><code>paper</code></td>
+<td>A calm look for e-ink: a theme of soft ink and thin lines on pure white, and buttons, a switch, cards and a progress bar that cost no extra refresh when touched.</td>
+</tr>
+
+<tr>
+<td><code>keys</code></td>
+<td>Turns the keys of a physical keyboard, such as the Type Folio, into text and editing keys. AppLoad sends the same code for &ldquo;a&rdquo; and &ldquo;A&rdquo;, so it keeps track of Shift, Caps Lock and accents itself.</td>
+</tr>
+
+<tr>
+<td><code>apptest</code></td>
+<td>Runs a program with no tablet: a stand-in for AppLoad that remembers what it was asked, and events delivered by hand.</td>
+</tr>
+
+<tr>
+<td><code>failure</code></td>
+<td>Errors with a stable name, such as <code>qtfb.server-not-found</code>, to check with <code>errors.Is</code>.</td>
+</tr>
+
+<tr>
+<td><code>cmd/hello</code>, <code>cmd/counter</code>, <code>cmd/notebook</code></td>
+<td>The small programs of <a href="./the-quest">the quest</a>.</td>
+</tr>
+
+<tr>
+<td><code>cmd/library</code></td>
+<td>The example of a finished interface: a shelf of books, a reader and a notebook.</td>
+</tr>
+
+<tr>
+<td><code>cmd/demo</code></td>
+<td>The test bench: Reading, Buttons, Ink, Gestures, Screen and Monitor. Each screen logs what it cost.</td>
+</tr>
+
+<tr>
+<td><code>tools/build.sh</code></td>
+<td>Builds <code>./cmd/&lt;program&gt;</code> for the tablet into <code>out/&lt;program&gt;</code>, with its manifest.</td>
+</tr>
+
+<tr>
+<td><code>tools/install.sh</code></td>
+<td>Copies <code>out/&lt;program&gt;</code> into AppLoad&rsquo;s folder over SSH. It writes only inside the program&rsquo;s own folder. <code>REMARKABLE_HOST</code> changes where it goes.</td>
+</tr>
+</tbody>
+</table>
+
+<h2 id="how-a-frame-gets-to-the-panel">How a frame gets to the panel</h2>
+<pre><code>your Draw → Go UI → Go Renderer&#39;s painter → canvas → only what changed → AppLoad → panel
+</code></pre>
+
+<p>Ink takes a short cut, because a pen cannot wait for an interface:</p>
+<pre><code>the pen → ink.Surface → canvas → that small area → AppLoad → panel
+</code></pre>
+
+<p>The first picture is built twice per update, because a press changes what the next build shows, and
+it reaches the panel only if the frame looks different from the last one.</p>
+
+<h2 id="what-you-need">What you need</h2>
+
+<ul>
+<li>Go 1.26 or later. The programs are pure Go, so <code>tools/build.sh</code> needs nothing else.</li>
+<li>A reMarkable Paper Pro in developer mode, reachable over SSH.</li>
+<li><a href="https://github.com/asivery/xovi" target="_blank">xovi</a> and <a href="https://github.com/asivery/rm-appload" target="_blank">AppLoad</a> on it,
+started as in <a href="./the-quest">the quest</a>. xovi&rsquo;s table of names must be built for
+your exact version of the tablet&rsquo;s software.</li>
+</ul>
+
+<p><code>go.mod</code> pins Go UI and Go Renderer at commits of theirs, until they release what this uses.</p>
+
+<h2 id="what-was-checked">What was checked</h2>
+
+<p>On a Paper Pro with software 3.29.1.0 and a build of AppLoad&rsquo;s <code>main</code> branch, the demo was tried by
+hand, before it was divided into these packages:</p>
+
+<table>
+<thead>
+<tr>
+<th>What</th>
+<th>Result</th>
+</tr>
+</thead>
+
+<tbody>
+<tr>
+<td>Reading and Buttons</td>
+<td>Good. A tap costs one frame of about 150 ms up to sending the refresh.</td>
+</tr>
+
+<tr>
+<td>Ink</td>
+<td>Follows the pen and comes out clean; pressure, tilt and eraser were felt to work; a palm breaks nothing.</td>
+</tr>
+
+<tr>
+<td>Gestures, Monitor</td>
+<td>All respond.</td>
+</tr>
+
+<tr>
+<td>Screen</td>
+<td>The turn button keeps taps in the right place; <code>Fast</code> sometimes looks greyer.</td>
+</tr>
+
+<tr>
+<td>Turning the tablet</td>
+<td>All four positions, in full screen.</td>
+</tr>
+
+<tr>
+<td>AppLoad&rsquo;s own gestures</td>
+<td>The swipe from the top and five fingers leave the program working.</td>
+</tr>
+
+<tr>
+<td>At rest</td>
+<td>All six screens stayed at 0 % processor with no frames, for 30 seconds each.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Not run on a tablet:</strong> <code>cmd/hello</code>, <code>cmd/counter</code>, <code>cmd/notebook</code>, <code>cmd/library</code>, <code>tools/build.sh</code> and
+<code>tools/install.sh</code> as they stand here, nor the demo since it became packages. The tests run the same
+code with a stand-in for AppLoad. The demo&rsquo;s two-finger list and its swipe to the end, and the
+eraser&rsquo;s band at its final width, were installed but not reported on.</p>
+
+<h2 id="before-writing-a-larger-program">Before writing a larger program</h2>
+
+<ul>
+<li><strong>Changing the refresh mode costs a second.</strong> AppLoad reads nothing more from a program for a second
+after each change. Keep one mode per screen. The mode you set is read later, when the panel repaints,
+so do not set it back straight after a refresh.</li>
+<li><strong>Modes above <code>qtfb.Interface</code> close the connection.</strong> AppLoad takes five, and hangs up on the rest.</li>
+<li><strong>The refresh is not the end.</strong> The times logged stop at sending it; AppLoad never says when the panel
+has finished.</li>
+<li><strong>Some gestures are AppLoad&rsquo;s.</strong> A swipe from the top edge opens its bar, and five fingers force a full
+refresh.</li>
+<li><strong>Input can be messy.</strong> AppLoad v0.6.0 reports a finger that did not move as another press; its
+<code>main</code> branch fixes that. A system menu can keep a finger&rsquo;s release for itself. <code>pointer</code> copes
+with both.</li>
+<li><strong>Follow the tablet&rsquo;s conventions.</strong> On the rest of the tablet two fingers scroll, and a swipe down
+goes to the end of the page. <code>cmd/demo/gestures.go</code> shows how.</li>
+<li><strong>In a window, nothing turns by itself.</strong> See <a href="./the-quest">level 4</a>.</li>
+</ul>
+
+<h2 id="not-yet">Not yet</h2>
+
+<ul>
+<li>Only the Paper Pro. The panel&rsquo;s size and pixel format are written into <code>app</code> and <code>qtfb</code>.</li>
+<li><code>canvas</code> paints no frosted backdrops, so Go UI&rsquo;s glass does not show.</li>
+<li>A program cannot save what is written yet: strokes live in memory.</li>
+<li>Text comes only from a physical keyboard. Nothing brings up the on-screen one, and <code>keys</code> has not been tried on the tablet yet.</li>
+<li>No desktop runner in this repository: besides the tablet, there is only <code>apptest</code>.</li>
+<li>Once, before these packages, the tablet&rsquo;s input stopped reaching a program for minutes. It did not
+come back in later tries, and its cause is unknown.</li>
+</ul>
