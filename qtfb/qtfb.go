@@ -63,6 +63,8 @@ const (
 	PenPress        EventKind = 0x20
 	PenRelease      EventKind = 0x21
 	PenMove         EventKind = 0x22
+	KeyPress        EventKind = 0x30  // a physical keyboard's key went down; X is its Qt key code
+	KeyRelease      EventKind = 0x31  // and came back up
 	RotationChanged EventKind = 0x100 // not from qtfb's input: a rotation message, with its value in X
 )
 
@@ -77,7 +79,7 @@ const (
 	RotationHalf         Rotation = 3
 )
 
-// Event is one pen, touch or rotation event from AppLoad.
+// Event is one pen, touch, key or rotation event from AppLoad.
 type Event struct {
 	Kind   EventKind
 	Device int32

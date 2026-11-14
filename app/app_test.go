@@ -13,13 +13,23 @@ import (
 
 // standInDisplay counts refreshes; apptest has a fuller one, but it needs this package.
 type standInDisplay struct {
-	refreshes int
+	refreshes   int
+	mode        qtfb.RefreshMode
+	modes       []qtfb.RefreshMode // the mode of each refresh, in order
+	areas       []canvas.Rectangle
+	modeChanges int
 }
 
-func (target *standInDisplay) SetRefreshMode(qtfb.RefreshMode) error { return nil }
+func (target *standInDisplay) SetRefreshMode(mode qtfb.RefreshMode) error {
+	target.mode = mode
+	target.modeChanges++
+	return nil
+}
 
-func (target *standInDisplay) Refresh(canvas.Rectangle) error {
+func (target *standInDisplay) Refresh(area canvas.Rectangle) error {
 	target.refreshes++
+	target.modes = append(target.modes, target.mode)
+	target.areas = append(target.areas, area)
 	return nil
 }
 

@@ -46,6 +46,11 @@ const (
 	// InkRearmDelay is how long after a clean refresh the panel goes back to the writing mode. The
 	// clean refresh must be on its way first, and the next stroke then pays no second for the change.
 	InkRearmDelay = 2 * time.Second
+
+	// FastCleanDelay is how long after the last UltraFast frame its area is refreshed again in
+	// Content mode. UltraFast answers soonest but leaves grey text rough and a trace of what was
+	// there; once the person pauses, one clean refresh puts it right.
+	FastCleanDelay = 700 * time.Millisecond
 )
 
 // Device is what a program is given to work with.
@@ -132,8 +137,12 @@ type Application struct {
 	painted    uint64
 	mode       qtfb.RefreshMode
 	needsBuild bool
-	liftedAt   time.Time // when the last press ended, until a frame answers it
-	rearmAt    time.Time // when to go back to the writing mode; zero if nothing is planned
+	liftedAt   time.Time        // when the last press ended, until a frame answers it
+	rearmAt    time.Time        // when to go back to the writing mode; zero if nothing is planned
+	fastArea   canvas.Rectangle // panel area sent in UltraFast since its last clean refresh
+	cleanAt    time.Time        // when to refresh fastArea cleanly; zero if nothing is planned
+	fastBackAt time.Time        // when to set UltraFast again after that clean refresh; zero if not planned
+	now        func() time.Time // the clock; tests replace it
 
 	systemTurn        canvas.Orientation // the way the system last said it stands
 	systemTurnWaiting bool               // systemTurn has not been applied yet
@@ -166,6 +175,7 @@ func New(target Display, memory []byte, penDetails func() pen.Sample, newProgram
 		program: newProgram(device).withDefaults(device),
 		seed:    maphash.MakeSeed(),
 		mode:    noRefreshModeSentYet,
+		now:     time.Now,
 	}, nil
 }
 
@@ -223,6 +233,14 @@ func (application *Application) nextWake() (time.Duration, bool) {
 	delay, wanted := application.state.Feed().TakeFrameRequest()
 	if wait, due := application.program.Ink.TimeUntilClean(); due && (!wanted || wait < delay) {
 		delay, wanted = wait, true
+	}
+	for _, planned := range []time.Time{application.cleanAt, application.fastBackAt} {
+		if planned.IsZero() {
+			continue
+		}
+		if wait := max(planned.Sub(application.now()), 0); !wanted || wait < delay {
+			delay, wanted = wait, true
+		}
 	}
 	if !application.rearmAt.IsZero() {
 		if wait := max(application.rearmAt.Sub(application.program.Ink.Clock()), 0); !wanted || wait < delay {
@@ -304,6 +322,9 @@ func (application *Application) Answer() error {
 	if err := application.flushInk(); err != nil {
 		return err
 	}
+	if err := application.cleanFastIfDue(); err != nil {
+		return err
+	}
 	if !application.needsBuild {
 		return nil
 	}
@@ -326,6 +347,33 @@ func (application *Application) flushInk() error {
 		return application.sendFrame(application.frame.PanelArea(finished), qtfb.Content)
 	}
 	return application.rearmIfDue()
+}
+
+// cleanFastIfDue refreshes, in Content mode, what UltraFast frames left rough, once they have rested.
+// A while later it sets UltraFast again: a change of mode holds AppLoad for about a second, which the
+// next key should not pay.
+func (application *Application) cleanFastIfDue() error {
+	now := application.now()
+	if !application.fastBackAt.IsZero() && !now.Before(application.fastBackAt) {
+		application.fastBackAt = time.Time{}
+		if err := application.useMode(qtfb.UltraFast); err != nil {
+			return err
+		}
+	}
+	if application.cleanAt.IsZero() || now.Before(application.cleanAt) {
+		return nil
+	}
+	area := application.fastArea
+	application.fastArea, application.cleanAt = canvas.Rectangle{}, time.Time{}
+	application.fastBackAt = now.Add(InkRearmDelay)
+	return application.sendFrame(area, qtfb.Content)
+}
+
+// noteFastFrame remembers an area sent in UltraFast, to refresh it cleanly after a pause.
+func (application *Application) noteFastFrame(area canvas.Rectangle) {
+	application.fastArea = application.fastArea.Joined(area)
+	application.cleanAt = application.now().Add(FastCleanDelay)
+	application.fastBackAt = time.Time{}
 }
 
 // planRearm asks to go back to the writing mode a little later.
@@ -434,6 +482,9 @@ func (application *Application) show() error {
 	if found {
 		if err := application.sendFrame(changed, mode); err != nil {
 			return err
+		}
+		if mode == qtfb.UltraFast {
+			application.noteFastFrame(changed)
 		}
 	}
 	if application.program.InkOpen() {

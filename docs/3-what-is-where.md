@@ -14,6 +14,7 @@ checked on a real tablet.
 | `pen` | The pen's pressure, tilt and eraser, read from its own device, which is never taken from the system. If it cannot be read, ink still works with plain lines. |
 | `pointer` | Turns the tablet's pen and fingers into the single pointer an interface expects, and copes with a resting palm and with presses whose release never came. |
 | `paper` | A calm look for e-ink: a theme of soft ink and thin lines on pure white, and buttons, a switch, cards and a progress bar that cost no extra refresh when touched. |
+| `keys` | Turns the keys of a physical keyboard, such as the Type Folio, into text and editing keys. AppLoad sends the same code for "a" and "A", so it keeps track of Shift, Caps Lock and accents itself. |
 | `apptest` | Runs a program with no tablet: a stand-in for AppLoad that remembers what it was asked, and events delivered by hand. |
 | `failure` | Errors with a stable name, such as `qtfb.server-not-found`, to check with `errors.Is`. |
 | `cmd/hello`, `cmd/counter`, `cmd/notebook` | The small programs of [the quest](2-the-quest.md). |
@@ -89,7 +90,7 @@ eraser's band at its final width, were installed but not reported on.
 - Only the Paper Pro. The panel's size and pixel format are written into `app` and `qtfb`.
 - `canvas` paints no frosted backdrops, so Go UI's glass does not show.
 - A program cannot save what is written yet: strokes live in memory.
-- No text entry: nothing brings up a keyboard.
+- Text comes only from a physical keyboard. Nothing brings up the on-screen one, and `keys` has not been tried on the tablet yet.
 - No desktop runner in this repository: besides the tablet, there is only `apptest`.
 - Once, before these packages, the tablet's input stopped reaching a program for minutes. It did not
   come back in later tries, and its cause is unknown.

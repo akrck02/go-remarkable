@@ -2,6 +2,7 @@
 package canvas
 
 import (
+	"bytes"
 	"encoding/binary"
 	"image"
 	"math"
@@ -65,6 +66,12 @@ type Canvas struct {
 	PanelWidth, PanelHeight int
 	Turn                    Orientation
 	Pixels                  []byte // red, green and blue of each pixel
+
+	// sent is Pixels as they were last copied to the panel's memory, so that a row that did not
+	// change is skipped with one fast comparison instead of converting every pixel. It is only
+	// trusted once a copy covered the whole canvas.
+	sent        []byte
+	sentIsWhole bool
 }
 
 // New makes an upright canvas the size of a panel, in pixels.
@@ -79,6 +86,7 @@ func New(width, height int) *Canvas {
 func (target *Canvas) TurnTo(turn Orientation) {
 	target.Turn = turn
 	target.Width, target.Height = turn.Size(target.PanelWidth, target.PanelHeight)
+	target.sentIsWhole = false // the same pixel lands elsewhere in memory now
 }
 
 // Whole is the area of the entire canvas.
@@ -202,25 +210,66 @@ func (target *Canvas) CopyChanged(memory []byte) (Rectangle, bool) {
 // CopyChangedIn is CopyChanged for one area of the canvas, which is what a pen stroke can afford.
 func (target *Canvas) CopyChangedIn(memory []byte, area Rectangle) (Rectangle, bool) {
 	area = area.Within(target.Whole())
-	origin, stepX, stepY := target.Turn.panelSteps(target.PanelWidth, target.PanelHeight)
+	if len(target.sent) != len(target.Pixels) {
+		target.sent, target.sentIsWhole = make([]byte, len(target.Pixels)), false
+	}
+	trusted := target.sentIsWhole
 	changed := Rectangle{Left: target.Width, Top: target.Height}
 	for y := area.Top; y < area.Bottom; y++ {
-		for x := area.Left; x < area.Right; x++ {
-			pixelOffset := (y*target.Width + x) * BytesPerRGBPixel
-			wanted := toRGB565(target.Pixels[pixelOffset], target.Pixels[pixelOffset+1], target.Pixels[pixelOffset+2])
-			memoryOffset := (origin + x*stepX + y*stepY) * BytesPerScreenPixel
-			if binary.LittleEndian.Uint16(memory[memoryOffset:]) == wanted {
+		left, right := area.Left, area.Right
+		if trusted {
+			var differs bool
+			if left, right, differs = target.changedSpan(y, left, right); !differs {
 				continue
 			}
-			binary.LittleEndian.PutUint16(memory[memoryOffset:], wanted)
-			changed.Left, changed.Top = min(changed.Left, x), min(changed.Top, y)
-			changed.Right, changed.Bottom = max(changed.Right, x+1), max(changed.Bottom, y+1)
 		}
+		target.copyRow(memory, y, left, right, &changed)
+	}
+	if area == target.Whole() {
+		target.sentIsWhole = true
 	}
 	if changed.Right == 0 {
 		return Rectangle{}, false
 	}
 	return target.PanelArea(changed), true
+}
+
+// changedSpan narrows a row to the pixels that differ from what was sent, and says false when none
+// does. Comparing bytes is many times faster than converting each pixel.
+func (target *Canvas) changedSpan(y, left, right int) (int, int, bool) {
+	row := y * target.Width
+	now := target.Pixels[(row+left)*BytesPerRGBPixel : (row+right)*BytesPerRGBPixel]
+	before := target.sent[(row+left)*BytesPerRGBPixel : (row+right)*BytesPerRGBPixel]
+	if bytes.Equal(now, before) {
+		return 0, 0, false
+	}
+	first, last := 0, len(now)-1
+	for now[first] == before[first] {
+		first++
+	}
+	for now[last] == before[last] {
+		last--
+	}
+	return left + first/BytesPerRGBPixel, left + last/BytesPerRGBPixel + 1, true
+}
+
+// copyRow converts part of a row to the panel's format, writes the pixels that differ and widens
+// changed to cover them.
+func (target *Canvas) copyRow(memory []byte, y, left, right int, changed *Rectangle) {
+	origin, stepX, stepY := target.Turn.panelSteps(target.PanelWidth, target.PanelHeight)
+	for x := left; x < right; x++ {
+		pixelOffset := (y*target.Width + x) * BytesPerRGBPixel
+		wanted := toRGB565(target.Pixels[pixelOffset], target.Pixels[pixelOffset+1], target.Pixels[pixelOffset+2])
+		memoryOffset := (origin + x*stepX + y*stepY) * BytesPerScreenPixel
+		if binary.LittleEndian.Uint16(memory[memoryOffset:]) == wanted {
+			continue
+		}
+		binary.LittleEndian.PutUint16(memory[memoryOffset:], wanted)
+		changed.Left, changed.Top = min(changed.Left, x), min(changed.Top, y)
+		changed.Right, changed.Bottom = max(changed.Right, x+1), max(changed.Bottom, y+1)
+	}
+	start, end := (y*target.Width+left)*BytesPerRGBPixel, (y*target.Width+right)*BytesPerRGBPixel
+	copy(target.sent[start:end], target.Pixels[start:end])
 }
 
 // PanelArea is where an area of the canvas lies on the panel.
